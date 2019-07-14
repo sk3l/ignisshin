@@ -1,0 +1,9 @@
+-I/usr/include/c++/7
+-I/usr/include/c++/7/bits
+-I/usr/include/x86_64-linux-gnu/c++/7
+-I/usr/include/x86_64-linux-gnu/c++/7/bits
+
+-Isrc/agent
+-Isrc/crypt
+-Isrc/keys
+-Isrc/tools

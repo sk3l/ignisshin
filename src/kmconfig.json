@@ -1,0 +1,23 @@
+{
+   "service" : {
+      "log" : {
+         "location" : "./keymaster_log.txt",
+         "verbosity": "debug"
+      }
+   },
+   "agents" : [
+   {
+      "agent_name"      : "phoenix",
+      "account_name"    : "ftpsystem",
+      "key_path"        : "/home/ftpsystem/.ssh",
+      "socket_address"  : "/tmp/keymaster_phoenix.sock"
+   },
+   {
+      "agent_name"      : "dragon",
+      "account_name"    : "ftpsystem",
+      "key_path"        : "/home/ftpsystem/.ssh",
+      "socket_address"  : "/tmp/keymaster_dragon.sock"
+   }
+
+   ]
+}
