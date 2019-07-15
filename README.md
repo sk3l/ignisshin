@@ -1,4 +1,4 @@
-# ignishun - rev up your SSH connections
+# ignisshin - rev up your SSH connections
 
 ## Capabilities
 

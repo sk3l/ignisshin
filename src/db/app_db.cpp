@@ -8,10 +8,10 @@
 #include <spdlog/spdlog.h>
 #include <jsoncpp/json/json.h>
 
-#include "app_config.h"
+#include "app_db.h"
 
-namespace sk3l {
 namespace ignisshin {
+namespace db {
 
 app_config config_parser::read_from_file(const std::string & path)
 {

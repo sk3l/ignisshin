@@ -12,7 +12,7 @@
 namespace ignisshin {
 namespace crypt {
 
-class CryptManager 
+class CryptManager
 {
    public:
        static const std::uint32_t KEY_SIZE = 32;
@@ -32,8 +32,8 @@ class CryptManager
        CryptManager(const CryptManager &) = delete;
        CryptManager & operator= (const CryptManager &) = delete;
 
-       CryptoString encipherStr(const CryptoString & plaintxt);
-       CryptoString decipherStr(const CryptoString & ciphtertxt);
+       CryptoBuffer encipherStr(const CryptoString & plaintxt);
+       CryptoString decipherStr(const CryptoBuffer & ciphtertxt);
 };
 
 }

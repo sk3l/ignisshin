@@ -17,7 +17,7 @@ int main(int argc, char ** argv)
     ignisshin::crypt::CryptManager::Key k = {"abcdefghijklmnoprstuvwxyz012345"};
     ignisshin::crypt::CryptManager cm(k);
 
-    ignisshin::crypt::CryptoString ptxt("The digital projection of your mental self."_bytes);
+    ignisshin::crypt::CryptoString ptxt("The digital projection of your mental self.");
 
     auto etxt = cm.encipherStr(ptxt);
     auto dtxt = cm.decipherStr(etxt);

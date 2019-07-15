@@ -5,17 +5,19 @@
 #include <limits>
 #include <memory>
 #include <array>
+#include <string>
+#include <vector>
 
 #include <openssl/evp.h>
 
 /* ~~~ CITATION: ~~~
  *
  * The CryptoAllocator C++ allocator and CrytoString constructs were patterned
- * after examples from below site: 
+ * after examples from below site:
  *
  * https://wiki.openssl.org/index.php/EVP_Symmetric_Encryption_and_Decryption
  *
- * The basic principle is to securely dispose (using OPENSSL_cleanse) of 
+ * The basic principle is to securely dispose (using OPENSSL_cleanse) of
  * allocated string memory after its lifetime ends.
  */
 
@@ -23,7 +25,7 @@ namespace ignisshin {
 namespace crypt {
 
 template <typename T>
-struct CryptoAllocator 
+struct CryptoAllocator
 {
 public:
     using value_type = T;
@@ -47,13 +49,13 @@ public:
     // Securely wipe the memory during allocation
     void deallocate(pointer p, size_type n) {
         OPENSSL_cleanse(p, n*sizeof(T));
-        ::operator delete(p); 
+        ::operator delete(p);
     }
-    
+
     size_type max_size() const {
         return std::numeric_limits<size_type>::max() / sizeof (T);
     }
-    
+
     template<typename U>
     struct rebind
     {
@@ -79,9 +81,9 @@ public:
     }
 };
 
-
-using byte = std::uint8_t; 
-using CryptoString = std::basic_string<byte, std::char_traits<byte>, CryptoAllocator<byte> >;
+using byte = std::uint8_t;
+using CryptoString = std::basic_string<char, std::char_traits<char>, CryptoAllocator<char> >;
+using CryptoBuffer = std::vector<byte, CryptoAllocator<byte> >;
 using CipherContextPtr = std::unique_ptr<EVP_CIPHER_CTX, decltype(&::EVP_CIPHER_CTX_free)>;
 
 }
