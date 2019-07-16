@@ -24,13 +24,14 @@ enum SshAuthTypes
 // JSON object for SSH session
 struct SshSession
 {
-    crypt::   sess_name_;
-    SshAuthTypes  auth_type_;
-    std::string   auth_str_;  
+    crypt::CryptoString sess_name_;
+    SshAuthTypes        auth_type_;
+    crypt::CryptoString auth_str_;  
     // TO DO - SSH connection metadata
 };
 
-using SessionDict = std::unordered_map<std::string,struct SshSession>;
+using SessionDict = std::unordered_map<crypt::CryptoString, struct SshSession,
+      crypt::CryptoHash >;
 
 // Root JSON object for the app DB 
 struct IgnisshinDb 

@@ -2,6 +2,7 @@
 #define CRYPTO_UTILS_H
 
 #include <cstdint>
+#include <functional>
 #include <limits>
 #include <memory>
 #include <array>
@@ -85,6 +86,15 @@ using byte = std::uint8_t;
 using CryptoString = std::basic_string<char, std::char_traits<char>, CryptoAllocator<char> >;
 using CryptoBuffer = std::vector<byte, CryptoAllocator<byte> >;
 using CipherContextPtr = std::unique_ptr<EVP_CIPHER_CTX, decltype(&::EVP_CIPHER_CTX_free)>;
+
+struct CryptoHash
+{
+std::size_t operator()(CryptoString const& s) const
+{
+    std::string hstr(s.c_str());
+    return std::hash<std::string>{}(hstr);
+}
+};
 
 }
 }

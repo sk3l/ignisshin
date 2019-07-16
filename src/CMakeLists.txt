@@ -51,6 +51,8 @@ find_package(OpenSSL REQUIRED)
 message(${PROJECT_SOURCE_DIR})
 
 include_directories(${PROJECT_SOURCE_DIR}/src/agent)
+include_directories(${PROJECT_SOURCE_DIR}/src/crypt)
+include_directories(${PROJECT_SOURCE_DIR}/src/db)
 include_directories(${PROJECT_SOURCE_DIR}/src/keys)
 include_directories(${PROJECT_SOURCE_DIR}/src/tools)
 
@@ -63,6 +65,7 @@ set(
 )
 
 add_subdirectory(./agent)
+add_subdirectory(./db)
 add_subdirectory(./keys)
 add_subdirectory(./tools)
 
