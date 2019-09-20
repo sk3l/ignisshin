@@ -4,6 +4,8 @@
             "secret" : ""
         },
         "sessions" : {
-
+            "name" : "",
+            "auth_type" : "",
+            "credential" : ""
         }
 }

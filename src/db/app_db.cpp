@@ -9,104 +9,127 @@
 #include <jsoncpp/json/json.h>
 
 #include "app_db.h"
-
+#include "app_config.h"
 namespace ignisshin {
 namespace db {
 
-app_config config_parser::read_from_file(const std::string & path)
+static const char * SSH_AUTH_TYPE_STR [] =
 {
-   app_config kmconfig;
+    "password",
+    "key"
+};
 
-   std::ifstream cfgfile(path);
-   if (!cfgfile.good())
-   {
-      std::stringstream ss;
-      ss << "Could not read config file at '"
-         << path
-         << "'"
-         << std::endl;
-      throw std::invalid_argument(ss.str());
-   }
+static enum SshAuthTypes str_to_ssh_auth_type(const std::string & s)
+{
+    for (int atype  = SshAuthTypes::PASSWORD;
+         atype <= SshAuthTypes::KEY;
+         atype = atype + 1)
+    {
+        if (s == SSH_AUTH_TYPE_STR[atype])
+            return (enum SshAuthTypes) atype;
+    }
 
-   Json::Value root;
-   cfgfile >> root;
+    return SshAuthTypes::UNDEFINED;
+}
 
-   Json::Value service = root["service"];
-   if (service.isNull())
-      throw std::runtime_error("Missing or invalid service entry in config file.");
+static std::string ssh_auth_type_to_str(enum SshAuthTypes atype)
+{
+    if (atype < SshAuthTypes::PASSWORD || atype > SshAuthTypes::KEY)
+        throw std::range_error("Ivalid SshAuthType passed to ssh_auth_type_to_str");
+    return SSH_AUTH_TYPE_STR[atype];
+}
 
-   Json::Value log = service["log"];
-   if (!log.isNull())
-   {
-      Json::Value location = log["location"];
-      if (!location.isNull())
-         kmconfig.service_.log_.log_file_name_ = location.asString();
+struct IgnisshinDb Serializer::deserialize(const std::string & str)
+{
+    struct IgnisshinDb db;
 
-      Json::Value verbosity = log["verbosity"];
-      if (verbosity.isNull() || !verbosity.isString())
-      {
-         kmconfig.service_.log_.verbosity_ = log_verbosity::ERROR;
-      }
-      else
-      {
-         // Take lower case of config log verbosity and map it to enum
-         std::string verbstr = verbosity.asString();
-         std::transform(
-            verbstr.begin(),
-            verbstr.end(),
-            verbstr.begin(),
-            [](unsigned char c) -> unsigned char {return std::tolower(c);});
+    Json::Reader reader;
+    Json::Value root;
 
-         //if (slog::get_log_verbosity(kmconfig.service_.log_.verbosity_, verbstr)) {
-         //   throw std::runtime_error("Not a valid verbosity level.");
-         //}
-      }
-   }
+    // Convert our string to a JSON document
+    if (!reader.parse(str, root))
+        throw std::runtime_error("Could not deserialize IgnisshinDb as JSON");
 
-   Json::Value agents = root["agents"];
-   if (agents.isNull() || !agents.isArray())
-      throw std::runtime_error("Missing or invalid agent list in config file.");
+    // Look up the login secret
+    Json::Value config = root["config"];
+    if (config.isNull() || !config.isObject())
+      throw std::runtime_error("Missing or invalid 'config' section in IgnisshinDb.");
 
-   for (auto it = agents.begin(); it != agents.end(); ++it)
-   {
-      agent_config ac;
+    Json::Value login = config["login"];
+    if (login.isNull() || !login.isObject())
+      throw std::runtime_error("Missing or invalid 'config.login' section in IgnisshinDb.");
+    if (!login.isMember("secret"))
+      throw std::runtime_error("Missing or invalid 'config.login.secret' section in IgnisshinDb.");
 
-      // Agent name - mandatory field
-      Json::Value agent_name = (*it)["agent_name"];
-      if (agent_name.isNull())
-      {
-         std::cerr << "Invalid agent config (missing 'name' key)" << std::endl;
-         continue;
-      }
-      ac.agent_name_ = agent_name.asString();
+    db.auth_.secret_.assign(login["secret"].asCString());
 
-      // Agent key path - mandatory field
-      Json::Value key_path = (*it)["key_path"];
-      if (key_path.isNull() || !key_path.isString())
-      {
-         std::cerr << "Invalid agent config (missing 'key_path' key)" << std::endl;
-         continue;
-      }
-      ac.key_path_ = key_path.asString();
+    // Look up the SSH sessions
+    Json::Value sessions = root["sessions"];
+    if (sessions.isNull() || !sessions.isArray())
+      throw std::runtime_error("Missing or invalid sessions list in IgnisshinDb.");
 
-      // Agent account name - optional field
-      Json::Value acct_name = (*it)["account_name"];
-      if (!acct_name.isNull())
-      {
-         ac.account_name_ = acct_name.asString();
-      }
+    for (auto it = sessions.begin(); it != sessions.end(); ++it)
+    {
+       struct SshSession session;
 
-      // Agent socket address - optional field
-      Json::Value sock_addr = (*it)["socket_address"];
-      if (!sock_addr.isNull())
-      {
-         ac.socket_addr_ = sock_addr.asString();
-      }
+       // Session name - mandatory field
+       Json::Value session_name = (*it)["name"];
+       if (session_name.isNull())
+       {
+          throw std::runtime_error("Invalid IgnisshinDb document (missing 'name' key)");
+       }
+       session.sess_name_.assign(session_name.asCString());
 
-      kmconfig.agents_.push_back(ac);
-   }
+       // Session auth type - mandatory field
+       Json::Value auth_type = (*it)["auth_type"];
+       if (auth_type .isNull() || !auth_type.isString())
+       {
+          throw std::runtime_error("Invalid IgnisshinDb document (missing 'auth_type' key)");
+       }
+       session.auth_type_ = str_to_ssh_auth_type(auth_type.asString());
 
-   return kmconfig;
+       // Session auth credential - mandatory field
+       Json::Value auth_cred = (*it)["credential"];
+       if (auth_cred.isNull() || !auth_cred.isString())
+       {
+          throw std::runtime_error("Invalid IgnisshinDb document (missing 'auth_cred' key)");
+       }
+       session.auth_str_.assign(auth_cred.asCString());
+
+       db.sessions_[session.sess_name_] = session;
+    }
+
+    return db;
+}
+
+std::string Serializer::serialize(const struct IgnisshinDb & db)
+{
+    Json::Value root;
+
+    // Serialze the login secret
+    Json::Value config;
+    Json::Value login;
+
+    login["secret"] = db.auth_.secret_.c_str();
+    config["login"] = login;
+    root["config"] = config;
+
+    // Serialze the SSH sessions
+    Json::Value sessions;
+    for (auto it = db.sessions_.begin(); it != db.sessions_.end(); ++it)
+    {
+        Json::Value session;
+
+        session["name"] = it->second.sess_name_.c_str();
+        session["auth_type"] = ssh_auth_type_to_str(it->second.auth_type_);
+        session["credential"] = it->second.auth_str_.c_str();
+
+        sessions.append(session);
+    }
+    root["sessions"] = sessions;
+
+    Json::FastWriter writer;
+    return writer.write(root);
 }
 
 }

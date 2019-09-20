@@ -53,7 +53,7 @@ class Serializer
 {
    public:
       static struct IgnisshinDb deserialize(const std::string & str);
-      static void               serialize(const struct IgnisshinDb & db);
+      static std::string  serialize(const struct IgnisshinDb & db);
 };
 
 }
