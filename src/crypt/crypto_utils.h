@@ -70,7 +70,7 @@ public:
     void destroy(pointer ptr) {
         static_cast<T*>(ptr)->~T();
     }
-
+#if __cpluplus >= 201103L
     template<typename U, typename... Args>
     void construct (U* ptr, Args&&  ... args) {
         ::new (static_cast<void*> (ptr) ) U (std::forward<Args> (args)...);
@@ -80,7 +80,15 @@ public:
     void destroy(U* ptr) {
         ptr->~U();
     }
+#endif
 };
+
+template <typename T>
+bool operator==(CryptoAllocator<T> const &, CryptoAllocator<T> const &) { return true; }
+
+template <typename T>
+bool operator!=(CryptoAllocator<T> const &, CryptoAllocator<T> const &) { return true; }
+
 
 using byte = std::uint8_t;
 using CryptoString = std::basic_string<char, std::char_traits<char>, CryptoAllocator<char> >;
