@@ -9,7 +9,7 @@ cd build
 
 echo -e "\n>>> Starting CMake <<<\n"
 
-cmake -DCMAKE_BUILD_TYPE=Debug ..
+cmake3 -DCMAKE_BUILD_TYPE=Debug ..
 
 echo -e "\n>>> Starting make <<<\n"
 
