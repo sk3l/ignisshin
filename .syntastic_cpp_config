@@ -1,5 +1,5 @@
--I/usr/include/c++/7
--I/usr/include/x86_64-linux-gnu/c++/7
+-I/opt/rh/devtoolset-7/root/usr/include/c++/7
+-I/opt/rh/devtoolset-7/root/usr/include/c++/7/x86_64-redhat-linux
 
 -Isrc/agent
 -Isrc/crypt

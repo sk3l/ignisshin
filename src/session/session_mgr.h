@@ -9,26 +9,26 @@
 
 #include <sys/types.h>
 
-#include "ssh_agent.h"
+//#include "ssh_agent.h"
 
 namespace sk3l {
-namespace keymaster {
+namespace ignisshin {
 
-using agent_t = std::shared_ptr<ssh_agent>;
+//using agent_t = std::shared_ptr<ssh_agent>;
 
 /*/////////////////////////////////////////////////////////////////////////////
-   agent_mgr - interface for managing multiple instances of OpenSSH ssh-agent
+   session_mgr - interface for managing multiple instances of OpenSSH ssh-agent
 
    This class permits callers to:
       * aggregate multiple ssh-agents, add, remove, lookup by name/PID (TODO)
       * control run state of managed ssh-agent instances
       * apply concurrent actions (timed updates, OS monitoring) to agents
 *//////////////////////////////////////////////////////////////////////////////
-class agent_mgr
+class session_mgr
 {
    private:
 
-      using agent_list_t= std::vector<agent_t>;
+      using session_list_t= std::vector<agent_t>;
       using name_map_t  = std::unordered_map<std::string, agent_t>;
       using pid_map_t   = std::unordered_map<pid_t, agent_t>;
 
@@ -43,11 +43,11 @@ class agent_mgr
 
    public:
 
-      agent_mgr();
+      session_mgr();
 
       // Non-copyable class
-      agent_mgr(const agent_mgr &) = delete;
-      agent_mgr & operator=(const agent_mgr &) = delete;
+      session_mgr(const session_mgr &) = delete;
+      session_mgr & operator=(const session_mgr &) = delete;
 
       void add_agent(const agent_t & agent);
       void monitor();
